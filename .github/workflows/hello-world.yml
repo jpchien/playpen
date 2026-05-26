@@ -58,7 +58,7 @@ jobs:
           retention-days: 7
       
       - name: Attest artifact
-        uses: actions/attest-build-provenance@v2
+        uses: actions/attest-build-provenance@v4
         with:
           subject-path: hello-${{ runner.os }}.txt
       
@@ -79,10 +79,12 @@ jobs:
     needs: greet
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     
     steps:
       - name: Download all artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           path: artifacts
       
