@@ -7,9 +7,19 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
+# Cancel in-progress runs on the same branch
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# Minimal permissions
+permissions:
+  contents: read
+
 jobs:
   greet:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     
@@ -25,3 +35,13 @@ jobs:
           echo "Running on: $(uname -a)"
           echo "Triggered by: ${{ github.event_name }}"
           echo "Branch: ${{ github.ref_name }}"
+      
+      - name: Generate job summary
+        run: |
+          echo "## Hello World Workflow 🎉" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Status:** ✅ Success" >> $GITHUB_STEP_SUMMARY
+          echo "**Trigger:** ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch:** \`${{ github.ref_name }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Runner:** ${{ runner.os }} ${{ runner.arch }}" >> $GITHUB_STEP_SUMMARY
