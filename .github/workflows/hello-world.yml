@@ -17,6 +17,8 @@ concurrency:
 # Minimal permissions
 permissions:
   contents: read
+  attestations: write
+  id-token: write
 
 jobs:
   greet:
@@ -55,6 +57,11 @@ jobs:
           path: hello-${{ runner.os }}.txt
           retention-days: 7
       
+      - name: Attest artifact
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: hello-${{ runner.os }}.txt
+      
       - name: Generate job summary
         if: always()
         run: |
@@ -66,3 +73,41 @@ jobs:
           echo "**Branch:** \`${{ github.ref_name }}\`" >> $GITHUB_STEP_SUMMARY
           echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
         shell: bash
+  
+  combine:
+    name: Combine Greetings
+    needs: greet
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+      
+      - name: Combine greetings
+        run: |
+          echo "# Combined Greetings from All Platforms" > combined.txt
+          echo "" >> combined.txt
+          for file in artifacts/*/hello-*.txt; do
+            echo "---" >> combined.txt
+            cat "$file" >> combined.txt
+            echo "" >> combined.txt
+          done
+          cat combined.txt
+      
+      - name: Upload combined artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: combined-greetings
+          path: combined.txt
+          retention-days: 7
+      
+      - name: Summary
+        run: |
+          echo "## Combined Results 📦" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          cat combined.txt >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
