@@ -120,94 +120,75 @@ jobs:
 
       - name: Create sample Python code and tests
         run: |
-          mkdir -p src tests
+          python3 << 'PYSCRIPT'
+          import os
+
+          os.makedirs('src', exist_ok=True)
+          os.makedirs('tests', exist_ok=True)
 
           # Create calculator.py
-          cat > src/calculator.py << 'EOF'
-          """Simple calculator module."""
+          with open('src/calculator.py', 'w') as f:
+              f.write('"""Simple calculator module."""\n\n\n')
+              f.write('def add(a: int, b: int) -> int:\n')
+              f.write('    """Add two numbers."""\n')
+              f.write('    return a + b\n\n\n')
+              f.write('def subtract(a: int, b: int) -> int:\n')
+              f.write('    """Subtract b from a."""\n')
+              f.write('    return a - b\n\n\n')
+              f.write('def multiply(a: int, b: int) -> int:\n')
+              f.write('    """Multiply two numbers."""\n')
+              f.write('    return a * b\n\n\n')
+              f.write('def divide(a: float, b: float) -> float:\n')
+              f.write('    """Divide a by b."""\n')
+              f.write('    if b == 0:\n')
+              f.write('        raise ValueError("Cannot divide by zero")\n')
+              f.write('    return a / b\n')
 
-
-          def add(a: int, b: int) -> int:
-              """Add two numbers."""
-              return a + b
-
-
-          def subtract(a: int, b: int) -> int:
-              """Subtract b from a."""
-              return a - b
-
-
-          def multiply(a: int, b: int) -> int:
-              """Multiply two numbers."""
-              return a * b
-
-
-          def divide(a: float, b: float) -> float:
-              """Divide a by b."""
-              if b == 0:
-                  raise ValueError("Cannot divide by zero")
-              return a / b
-          EOF
-
-          # Create src/__init__.py
-          touch src/__init__.py
+          # Create __init__.py files
+          open('src/__init__.py', 'w').close()
+          open('tests/__init__.py', 'w').close()
 
           # Create test_calculator.py
-          cat > tests/test_calculator.py << 'EOF'
-          """Tests for calculator module."""
-          import sys
-          import os
-          sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "src")))
-
-          import pytest
-          from calculator import add, subtract, multiply, divide
-
-
-          def test_add():
-              assert add(2, 3) == 5
-              assert add(-1, 1) == 0
-              assert add(0, 0) == 0
-
-
-          def test_subtract():
-              assert subtract(5, 3) == 2
-              assert subtract(0, 5) == -5
-              assert subtract(10, 10) == 0
-
-
-          def test_multiply():
-              assert multiply(2, 3) == 6
-              assert multiply(-2, 3) == -6
-              assert multiply(0, 100) == 0
-
-
-          def test_divide():
-              assert divide(6, 2) == 3
-              assert divide(5, 2) == 2.5
-              assert divide(0, 5) == 0
-
-
-          def test_divide_by_zero():
-              with pytest.raises(ValueError, match="Cannot divide by zero"):
-                  divide(5, 0)
-          EOF
+          with open('tests/test_calculator.py', 'w') as f:
+              f.write('"""Tests for calculator module."""\n')
+              f.write('import sys\n')
+              f.write('import os\n')
+              f.write('sys.path.insert(0, os.path.abspath(os.path.join(')
+              f.write('os.path.dirname(__file__), "..", "src")))\n\n')
+              f.write('import pytest\n')
+              f.write('from calculator import add, subtract, multiply, divide\n\n\n')
+              f.write('def test_add():\n')
+              f.write('    assert add(2, 3) == 5\n')
+              f.write('    assert add(-1, 1) == 0\n')
+              f.write('    assert add(0, 0) == 0\n\n\n')
+              f.write('def test_subtract():\n')
+              f.write('    assert subtract(5, 3) == 2\n')
+              f.write('    assert subtract(0, 5) == -5\n')
+              f.write('    assert subtract(10, 10) == 0\n\n\n')
+              f.write('def test_multiply():\n')
+              f.write('    assert multiply(2, 3) == 6\n')
+              f.write('    assert multiply(-2, 3) == -6\n')
+              f.write('    assert multiply(0, 100) == 0\n\n\n')
+              f.write('def test_divide():\n')
+              f.write('    assert divide(6, 2) == 3\n')
+              f.write('    assert divide(5, 2) == 2.5\n')
+              f.write('    assert divide(0, 5) == 0\n\n\n')
+              f.write('def test_divide_by_zero():\n')
+              f.write('    with pytest.raises(ValueError, ')
+              f.write('match="Cannot divide by zero"):\n')
+              f.write('        divide(5, 0)\n')
 
           # Create conftest.py
-          cat > tests/conftest.py << 'EOF'
-          """Pytest configuration."""
-          import pytest
+          with open('tests/conftest.py', 'w') as f:
+              f.write('"""Pytest configuration."""\n')
+              f.write('import pytest\n\n\n')
+              f.write('def pytest_configure(config):\n')
+              f.write('    config.addinivalue_line(\n')
+              f.write('        "markers", "slow: marks tests as slow"\n')
+              f.write('    )\n')
 
-
-          def pytest_configure(config):
-              config.addinivalue_line(
-                  "markers", "slow: marks tests as slow"
-              )
-          EOF
-
-          # Create tests/__init__.py
-          touch tests/__init__.py
-
-          echo "Created all test files successfully"
+          print("Created all test files successfully")
+          PYSCRIPT
         shell: bash
 
       - name: Run tests with coverage
