@@ -189,7 +189,7 @@ jobs:
           with open('tests/__init__.py', 'w') as f:
               f.write('')
 
-          print("✓ Created all test files successfully")
+          print("OK - Created all test files successfully")
           PYSETUP
 
           python setup_test_files.py
