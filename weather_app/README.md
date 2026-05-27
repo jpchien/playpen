@@ -247,3 +247,4 @@ This app uses the [OpenWeatherMap API](https://openweathermap.org/api):
 ## License
 
 MIT License - feel free to use and modify!
+
