@@ -5,10 +5,12 @@ on:
     branches: [ main ]
     paths-ignore:
       - 'weather_app/**'
+      - '.github/workflows/weather-app-test.yml'
   pull_request:
     branches: [ main ]
     paths-ignore:
       - 'weather_app/**'
+      - '.github/workflows/weather-app-test.yml'
   workflow_dispatch:
     inputs:
       os-selection:
