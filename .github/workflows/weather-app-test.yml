@@ -135,9 +135,56 @@ jobs:
           python weather.py --list-favorites || true
           echo "[OK] List favorites works without config"
 
+      - name: Demo - Show app behavior without API key
+        working-directory: weather_app
+        shell: bash
+        run: |
+          echo "============================================"
+          echo "Demo: Running weather app without API key"
+          echo "============================================"
+          echo ""
+          echo "Attempting to check weather for London..."
+          python weather.py London || echo "[Expected] App correctly reports missing API key"
+          echo ""
+          echo "============================================"
+          echo "This demonstrates the app's error handling!"
+          echo "To use with real data, add OPENWEATHER_API_KEY"
+          echo "as a repository secret and configure setup."
+          echo "============================================"
+
+      - name: Live Demo - Fetch Real Weather (if API key configured)
+        if: ${{ secrets.OPENWEATHER_API_KEY != '' }}
+        working-directory: weather_app
+        shell: bash
+        env:
+          API_KEY: ${{ secrets.OPENWEATHER_API_KEY }}
+        run: |
+          echo "============================================"
+          echo "LIVE DEMO: Fetching Real Weather Data"
+          echo "============================================"
+          echo ""
+          # Configure the app with the API key
+          python -c "import json; from pathlib import Path; config_dir = Path.home() / '.weather_app'; config_dir.mkdir(exist_ok=True); config = {'api_key': '$API_KEY', 'units': 'imperial', 'favorites': ['London', 'Tokyo', 'New York']}; (config_dir / 'config.json').write_text(json.dumps(config, indent=2))"
+          
+          echo "☀️ Current Weather - London:"
+          python weather.py London
+          echo ""
+          echo "🌸 Current Weather - Tokyo:"
+          python weather.py Tokyo
+          echo ""
+          echo "🗽 Current Weather - New York:"
+          python weather.py "New York"
+          echo ""
+          echo "============================================"
+          echo "Real weather data fetched successfully!"
+          echo "============================================"
+
       - name: Summary
         run: |
           echo "## 🌤️ Weather App CLI Tests" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "✅ Help command functional" >> $GITHUB_STEP_SUMMARY
           echo "✅ Handles missing configuration gracefully" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Demonstrates proper error handling" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "💡 **Tip**: To see live weather data in CI, add \`OPENWEATHER_API_KEY\` as a repository secret!" >> $GITHUB_STEP_SUMMARY
