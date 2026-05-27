@@ -95,19 +95,7 @@ Examples:
         config.interactive_setup()
         return 0
     
-    # Check if API key is configured
-    if not config.get('api_key'):
-        print("❌ API key not configured!")
-        print("\nPlease run: python3 weather.py --setup")
-        print("\nYou can get a free API key from: https://openweathermap.org/api")
-        return 1
-    
-    # Initialize clients
-    units = args.units or config.get('units', 'metric')
-    client = WeatherClient(config.get('api_key'), units=units)
-    display = WeatherDisplay(units=units)
-    
-    # Handle favorites management
+    # Handle favorites management (no API key needed)
     if args.add_favorite:
         config.add_favorite(args.add_favorite)
         print(f"✅ Added '{args.add_favorite}' to favorites")
@@ -130,6 +118,18 @@ Examples:
             print("No favorite locations saved.")
             print("Add one with: python3 weather.py --add-favorite LOCATION")
         return 0
+    
+    # Check if API key is configured (needed for weather queries)
+    if not config.get('api_key'):
+        print("❌ API key not configured!")
+        print("\nPlease run: python3 weather.py --setup")
+        print("\nYou can get a free API key from: https://openweathermap.org/api")
+        return 1
+    
+    # Initialize clients
+    units = args.units or config.get('units', 'metric')
+    client = WeatherClient(config.get('api_key'), units=units)
+    display = WeatherDisplay(units=units)
     
     # Handle weather for all favorites
     if args.favorites:
