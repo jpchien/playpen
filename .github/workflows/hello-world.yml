@@ -66,6 +66,38 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v6
       
+      - name: Display workflow trigger info
+        run: |
+          echo "=========================================="
+          echo "🎯 Workflow Trigger Information"
+          echo "=========================================="
+          echo "Trigger: ${{ github.event_name }}"
+          echo ""
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "✨ This workflow was MANUALLY triggered!"
+            echo ""
+            echo "📋 Inputs provided:"
+            echo "  • OS Selection: ${{ inputs.os-selection }}"
+            echo "  • Custom Message: ${{ inputs.custom-message }}"
+            echo "  • Enable Deployment: ${{ inputs.enable-deployment }}"
+            echo ""
+            echo "💡 TIP: You can change these inputs when manually running the workflow"
+            echo "   from the Actions tab → Hello World → Run workflow button"
+          else
+            echo "🤖 This workflow was AUTOMATICALLY triggered by: ${{ github.event_name }}"
+            echo ""
+            echo "💡 TIP: To manually trigger with custom inputs:"
+            echo "   1. Go to the Actions tab"
+            echo "   2. Select 'Hello World' workflow"
+            echo "   3. Click 'Run workflow' button"
+            echo "   4. Choose your options and click 'Run workflow'"
+          fi
+          echo ""
+          echo "🏃 Running on: ${{ matrix.os }}"
+          echo "📝 Message: ${{ env.CUSTOM_MESSAGE }}"
+          echo "=========================================="
+        shell: bash
+      
       - name: Set timestamp output
         id: set-output
         run: echo "timestamp=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> $GITHUB_OUTPUT
@@ -118,6 +150,19 @@ jobs:
           echo "**Status:** ✅ Success" >> $GITHUB_STEP_SUMMARY
           echo "**OS:** ${{ runner.os }} ${{ runner.arch }}" >> $GITHUB_STEP_SUMMARY
           echo "**Trigger:** ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "**Mode:** ✨ Manual (with custom inputs)" >> $GITHUB_STEP_SUMMARY
+            echo "**OS Selection:** ${{ inputs.os-selection }}" >> $GITHUB_STEP_SUMMARY
+            echo "**Custom Message:** ${{ inputs.custom-message }}" >> $GITHUB_STEP_SUMMARY
+            echo "**Deployment Enabled:** ${{ inputs.enable-deployment }}" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "**Mode:** 🤖 Automatic" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "> 💡 **Tip:** Manually trigger this workflow from the Actions tab to use custom inputs!" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Branch:** \`${{ github.ref_name }}\`" >> $GITHUB_STEP_SUMMARY
           echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
           echo "**Duration:** ${{ steps.performance.outputs.duration }}s ⚡" >> $GITHUB_STEP_SUMMARY
