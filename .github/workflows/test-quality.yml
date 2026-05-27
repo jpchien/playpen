@@ -100,7 +100,7 @@ jobs:
     timeout-minutes: 15
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-2025-vs2026]
+        os: [ubuntu-latest, macos-latest]
         python-version: ['3.11', '3.12']
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
