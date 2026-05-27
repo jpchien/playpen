@@ -39,23 +39,27 @@ jobs:
 
       - name: Run Black formatter check
         run: |
-          black --check --diff weather_app/*.py || true
+          cd weather_app
+          black --check --diff *.py || true
           echo "✅ Black formatting check complete"
 
       - name: Run isort check
         run: |
-          isort --check-only --diff weather_app/*.py || true
+          cd weather_app
+          isort --check-only --diff *.py || true
           echo "✅ isort import ordering check complete"
 
       - name: Run flake8
         run: |
-          flake8 weather_app/*.py --count --select=E9,F63,F7,F82 --show-source --statistics || true
-          flake8 weather_app/*.py --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics || true
+          cd weather_app
+          flake8 *.py --count --select=E9,F63,F7,F82 --show-source --statistics || true
+          flake8 *.py --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics || true
           echo "✅ Flake8 linting complete"
 
       - name: Run pylint
         run: |
-          pylint weather_app/*.py --exit-zero --output-format=text || true
+          cd weather_app
+          pylint *.py --exit-zero --output-format=text || true
           echo "✅ Pylint analysis complete"
 
       - name: Lint summary
@@ -87,7 +91,8 @@ jobs:
 
       - name: Check Python syntax
         run: |
-          python -m py_compile weather_app/*.py
+          cd weather_app
+          python -m py_compile weather.py api_client.py config.py display.py
           echo "✅ Syntax check passed for Python ${{ matrix.python-version }} on ${{ matrix.os }}"
 
       - name: Test imports
