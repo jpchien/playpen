@@ -124,10 +124,11 @@ jobs:
           import os
           os.makedirs('src', exist_ok=True)
           os.makedirs('tests', exist_ok=True)
-          
+
           # Create main module
           with open('src/calculator.py', 'w') as f:
               f.write('''\"\"\"Simple calculator module.\"\"\"
+
 
           def add(a: int, b: int) -> int:
               \"\"\"Add two numbers.\"\"\"
@@ -150,11 +151,11 @@ jobs:
                   raise ValueError(\"Cannot divide by zero\")
               return a / b
           ''')
-          
+
           # Create __init__.py
           with open('src/__init__.py', 'w') as f:
               f.write('')
-          
+
           # Create tests
           with open('tests/test_calculator.py', 'w') as f:
               f.write('''\"\"\"Tests for calculator module.\"\"\"
@@ -194,18 +195,19 @@ jobs:
               with pytest.raises(ValueError, match=\"Cannot divide by zero\"):
                   divide(5, 0)
           ''')
-          
+
           # Create conftest
           with open('tests/conftest.py', 'w') as f:
               f.write('''\"\"\"Pytest configuration.\"\"\"
           import pytest
 
+
           def pytest_configure(config):
               config.addinivalue_line(
-                  \"markers\", \"slow: marks tests as slow (deselect with \\'-m \\\"not slow\\\"\\')\"
+                  \"markers\", \"slow: marks tests as slow\"
               )
           ''')
-          
+
           # Create __init__.py for tests
           with open('tests/__init__.py', 'w') as f:
               f.write('')
@@ -273,7 +275,7 @@ jobs:
         run: |
           echo "## 📊 Test Coverage Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          
+
           if [ -d "coverage-reports" ] && [ "$(find coverage-reports -type f 2>/dev/null | wc -l)" -gt 0 ]; then
             echo "✅ Coverage reports available for:" >> $GITHUB_STEP_SUMMARY
             for dir in coverage-reports/coverage-*; do
