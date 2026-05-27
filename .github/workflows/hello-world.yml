@@ -56,16 +56,16 @@ jobs:
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
       CUSTOM_MESSAGE: ${{ inputs.custom-message || 'Hello, World!' }}
-    
+
     steps:
       - name: Record start time
         id: start
         run: echo "time=$(date +%s)" >> $GITHUB_OUTPUT
         shell: bash
-      
+
       - name: Checkout code
         uses: actions/checkout@v6
-      
+
       - name: Display workflow trigger info
         run: |
           echo "=========================================="
@@ -97,40 +97,40 @@ jobs:
           echo "📝 Message: ${{ env.CUSTOM_MESSAGE }}"
           echo "=========================================="
         shell: bash
-      
+
       - name: Set timestamp output
         id: set-output
         run: echo "timestamp=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> $GITHUB_OUTPUT
         shell: bash
-      
+
       - name: Say Hello
         run: echo "${{ env.CUSTOM_MESSAGE }} 👋 from ${{ matrix.os }}"
-      
+
       - name: Display environment
         run: |
           echo "Running on: $(uname -a)"
           echo "Triggered by: ${{ github.event_name }}"
           echo "Branch: ${{ github.ref_name }}"
         shell: bash
-      
+
       - name: Create artifact
         run: |
           echo "${{ env.CUSTOM_MESSAGE }} from ${{ runner.os }}!" > hello-${{ runner.os }}.txt
           echo "Build time: $(date)" >> hello-${{ runner.os }}.txt
         shell: bash
-      
+
       - name: Upload artifact
         uses: actions/upload-artifact@v7
         with:
           name: greeting-${{ runner.os }}
           path: hello-${{ runner.os }}.txt
           retention-days: 7
-      
+
       - name: Attest artifact
         uses: actions/attest-build-provenance@v4
         with:
           subject-path: hello-${{ runner.os }}.txt
-      
+
       - name: Calculate performance metrics
         id: performance
         if: always()
@@ -141,7 +141,7 @@ jobs:
           echo "duration=${DURATION}" >> $GITHUB_OUTPUT
           echo "Job duration: ${DURATION} seconds"
         shell: bash
-      
+
       - name: Generate job summary
         if: always()
         run: |
@@ -150,7 +150,7 @@ jobs:
           echo "**Status:** ✅ Success" >> $GITHUB_STEP_SUMMARY
           echo "**OS:** ${{ runner.os }} ${{ runner.arch }}" >> $GITHUB_STEP_SUMMARY
           echo "**Trigger:** ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
-          
+
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             echo "**Mode:** ✨ Manual (with custom inputs)" >> $GITHUB_STEP_SUMMARY
             echo "**OS Selection:** ${{ inputs.os-selection }}" >> $GITHUB_STEP_SUMMARY
@@ -161,13 +161,13 @@ jobs:
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "> 💡 **Tip:** Manually trigger this workflow from the Actions tab to use custom inputs!" >> $GITHUB_STEP_SUMMARY
           fi
-          
+
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Branch:** \`${{ github.ref_name }}\`" >> $GITHUB_STEP_SUMMARY
           echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
           echo "**Duration:** ${{ steps.performance.outputs.duration }}s ⚡" >> $GITHUB_STEP_SUMMARY
         shell: bash
-  
+
   combine:
     name: Combine Greetings
     needs: greet
@@ -177,13 +177,13 @@ jobs:
       summary: ${{ steps.create-summary.outputs.summary }}
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-    
+
     steps:
       - name: Download all artifacts
         uses: actions/download-artifact@v8
         with:
           path: artifacts
-      
+
       - name: Combine greetings
         id: create-summary
         run: |
@@ -198,17 +198,17 @@ jobs:
             echo "" >> combined.txt
           done
           cat combined.txt
-          
+
           # Set output for other jobs
           echo "summary=Successfully combined greetings from all platforms" >> $GITHUB_OUTPUT
-      
+
       - name: Upload combined artifact
         uses: actions/upload-artifact@v7
         with:
           name: combined-greetings
           path: combined.txt
           retention-days: 7
-      
+
       - name: Summary
         run: |
           echo "## Combined Results 📦" >> $GITHUB_STEP_SUMMARY
@@ -216,7 +216,7 @@ jobs:
           echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
           cat combined.txt >> $GITHUB_STEP_SUMMARY
           echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-  
+
   comment-pr:
     name: Comment on PR
     if: github.event_name == 'pull_request'
@@ -225,46 +225,46 @@ jobs:
     timeout-minutes: 5
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-    
+
     steps:
       - name: Download combined artifact
         uses: actions/download-artifact@v8
         with:
           name: combined-greetings
-      
+
       - name: Create PR comment
         uses: actions/github-script@v9
         with:
           script: |
             const fs = require('fs');
             const combined = fs.readFileSync('combined.txt', 'utf8');
-            
+
             const comment = `## 🎉 Hello World Workflow Complete!
-            
+
             **Status:** ✅ All platforms passed
             **Run ID:** ${{ github.run_id }}
             **Timestamp:** ${{ needs.greet.outputs.timestamp }}
-            
+
             <details>
             <summary>📦 Combined Greetings</summary>
-            
+
             \`\`\`
             ${combined}
             \`\`\`
-            
+
             </details>
-            
+
             ${{ needs.combine.outputs.summary }}
-            
+
             [View full workflow run](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})`;
-            
+
             github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
               body: comment
             });
-  
+
   notify-failure:
     name: Notify on Failure
     if: failure()
@@ -273,7 +273,7 @@ jobs:
     timeout-minutes: 5
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-    
+
     steps:
       - name: Log failure
         run: |
@@ -285,7 +285,7 @@ jobs:
           echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "[View failed run](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> $GITHUB_STEP_SUMMARY
-  
+
   cache-demo:
     name: Cache Demo
     needs: combine
@@ -293,11 +293,11 @@ jobs:
     timeout-minutes: 5
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
-      
+
       - name: Cache demo files
         uses: actions/cache@v5
         with:
@@ -306,14 +306,14 @@ jobs:
           key: demo-cache-${{ runner.os }}-${{ github.run_id }}
           restore-keys: |
             demo-cache-${{ runner.os }}-
-      
+
       - name: Create cached content
         run: |
           mkdir -p ~/.cache/demo
           echo "Cached at: $(date)" > ~/.cache/demo/timestamp.txt
           echo "Run ID: ${{ github.run_id }}" >> ~/.cache/demo/timestamp.txt
           cat ~/.cache/demo/timestamp.txt
-      
+
       - name: Cache summary
         run: |
           echo "## 💾 Cache Demo" >> $GITHUB_STEP_SUMMARY
@@ -321,7 +321,7 @@ jobs:
           echo "Demonstrated caching with key: \`demo-cache-${{ runner.os }}-${{ github.run_id }}\`" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "In a real workflow, this would cache dependencies, build artifacts, or other reusable data." >> $GITHUB_STEP_SUMMARY
-  
+
   deploy:
     name: Deploy to Production
     if: (github.event_name == 'workflow_dispatch' && inputs.enable-deployment) || github.ref == 'refs/heads/main'
@@ -333,13 +333,13 @@ jobs:
       url: https://github.com/${{ github.repository }}
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-    
+
     steps:
       - name: Download combined artifact
         uses: actions/download-artifact@v8
         with:
           name: combined-greetings
-      
+
       - name: Simulate deployment
         run: |
           echo "🚀 Deploying to production..."
@@ -347,7 +347,7 @@ jobs:
           sleep 5
           echo "✅ Deployment complete!"
           cat combined.txt
-      
+
       - name: Deployment summary
         run: |
           echo "## 🚀 Deployment Summary" >> $GITHUB_STEP_SUMMARY

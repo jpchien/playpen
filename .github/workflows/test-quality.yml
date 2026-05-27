@@ -21,67 +21,67 @@ jobs:
     timeout-minutes: 10
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
-      
+
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.12'
-      
+
       - name: Install linting tools
         run: |
           pip install pylint flake8 black isort yamllint
-      
+
       - name: Create sample Python file
         run: |
           mkdir -p src
           cat << 'EOF' > src/sample.py
           """Sample Python module for testing."""
-          
+
           def hello(name: str) -> str:
               """Return a greeting message."""
               return f"Hello, {name}!"
-          
-          
+
+
           def add(a: int, b: int) -> int:
               """Add two numbers."""
               return a + b
-          
-          
+
+
           if __name__ == "__main__":
               print(hello("World"))
               print(f"2 + 3 = {add(2, 3)}")
           EOF
-      
+
       - name: Run Black formatter check
         run: |
           black --check --diff src/ || true
           echo "✅ Black formatting check complete"
-      
+
       - name: Run isort check
         run: |
           isort --check-only --diff src/ || true
           echo "✅ isort import ordering check complete"
-      
+
       - name: Run flake8
         run: |
           flake8 src/ --count --select=E9,F63,F7,F82 --show-source --statistics || true
           flake8 src/ --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics || true
           echo "✅ Flake8 linting complete"
-      
+
       - name: Run pylint
         run: |
           pylint src/ --exit-zero --output-format=text || true
           echo "✅ Pylint analysis complete"
-      
+
       - name: Lint YAML files
         run: |
           yamllint .github/workflows/ || true
           echo "✅ YAML linting complete"
-      
+
       - name: Lint summary
         run: |
           echo "## 🔍 Code Quality Checks" >> $GITHUB_STEP_SUMMARY
@@ -93,7 +93,7 @@ jobs:
           echo "- flake8 (linting)" >> $GITHUB_STEP_SUMMARY
           echo "- pylint (static analysis)" >> $GITHUB_STEP_SUMMARY
           echo "- yamllint (workflow files)" >> $GITHUB_STEP_SUMMARY
-  
+
   test:
     name: Run Tests
     runs-on: ${{ matrix.os }}
@@ -104,105 +104,105 @@ jobs:
         python-version: ['3.11', '3.12']
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
-      
+
       - name: Setup Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
-      
+
       - name: Install dependencies
         run: |
           pip install pytest pytest-cov pytest-xdist pytest-html
-      
+
       - name: Create sample Python code and tests
         run: |
           mkdir -p src tests
-          
+
           # Create main module
           cat << 'EOF' > src/calculator.py
           """Simple calculator module."""
-          
+
           def add(a: int, b: int) -> int:
               """Add two numbers."""
               return a + b
-          
-          
+
+
           def subtract(a: int, b: int) -> int:
               """Subtract b from a."""
               return a - b
-          
-          
+
+
           def multiply(a: int, b: int) -> int:
               """Multiply two numbers."""
               return a * b
-          
-          
+
+
           def divide(a: float, b: float) -> float:
               """Divide a by b."""
               if b == 0:
                   raise ValueError("Cannot divide by zero")
               return a / b
           EOF
-          
+
           # Create tests
           cat << 'EOF' > tests/test_calculator.py
           """Tests for calculator module."""
           import sys
           import os
           sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
-          
+
           import pytest
           from calculator import add, subtract, multiply, divide
-          
-          
+
+
           def test_add():
               assert add(2, 3) == 5
               assert add(-1, 1) == 0
               assert add(0, 0) == 0
-          
-          
+
+
           def test_subtract():
               assert subtract(5, 3) == 2
               assert subtract(0, 5) == -5
               assert subtract(10, 10) == 0
-          
-          
+
+
           def test_multiply():
               assert multiply(2, 3) == 6
               assert multiply(-2, 3) == -6
               assert multiply(0, 100) == 0
-          
-          
+
+
           def test_divide():
               assert divide(6, 2) == 3
               assert divide(5, 2) == 2.5
               assert divide(0, 5) == 0
-          
-          
+
+
           def test_divide_by_zero():
               with pytest.raises(ValueError, match="Cannot divide by zero"):
                   divide(5, 0)
           EOF
-          
+
           cat << 'EOF' > tests/conftest.py
           """Pytest configuration."""
           import pytest
-          
+
           def pytest_configure(config):
               config.addinivalue_line(
                   "markers", "slow: marks tests as slow (deselect with '-m \"not slow\"')"
               )
           EOF
         shell: bash
-      
+
       - name: Run tests with coverage
         run: |
           pytest tests/ -v --cov=src --cov-report=xml --cov-report=html --cov-report=term --html=test-report.html --self-contained-html
-      
+
       - name: Upload coverage reports
         uses: actions/upload-artifact@v7
         if: always()
@@ -213,7 +213,7 @@ jobs:
             test-report.html
             coverage.xml
           retention-days: 30
-      
+
       - name: Test summary
         if: always()
         run: |
@@ -225,7 +225,7 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "Coverage reports and test results have been uploaded as artifacts." >> $GITHUB_STEP_SUMMARY
         shell: bash
-  
+
   coverage-report:
     name: Combine Coverage Reports
     needs: test
@@ -233,19 +233,19 @@ jobs:
     timeout-minutes: 10
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-    
+
     steps:
       - name: Download all coverage reports
         uses: actions/download-artifact@v8
         with:
           pattern: coverage-*
           path: coverage-reports
-      
+
       - name: List downloaded files
         run: |
           echo "Downloaded coverage reports:"
           find coverage-reports -type f
-      
+
       - name: Generate combined summary
         run: |
           echo "## 📊 Test Coverage Summary" >> $GITHUB_STEP_SUMMARY
@@ -256,26 +256,26 @@ jobs:
           echo "- Windows (Python 3.11, 3.12)" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "📁 Download the artifacts to view detailed coverage reports." >> $GITHUB_STEP_SUMMARY
-      
+
       - name: Comment on PR
         if: github.event_name == 'pull_request'
         uses: actions/github-script@v9
         with:
           script: |
             const comment = `## 📊 Test & Quality Results
-            
+
             ✅ All quality checks and tests have passed!
-            
+
             ### Coverage Reports
             Coverage reports are available for all platforms:
             - Ubuntu (Python 3.11, 3.12)
             - macOS (Python 3.11, 3.12)
             - Windows (Python 3.11, 3.12)
-            
+
             Download the artifacts from the workflow run to view detailed coverage.
-            
+
             [View full workflow run](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})`;
-            
+
             github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,

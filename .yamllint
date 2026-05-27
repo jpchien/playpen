@@ -1,0 +1,28 @@
+---
+extends: default
+
+rules:
+  # Relax line-length for GitHub Actions workflows (scripts can be long)
+  line-length:
+    max: 120
+    level: warning
+
+  # GitHub Actions workflows don't need document-start
+  document-start: disable
+
+  # Allow 'on:' (truthy value) in GitHub Actions
+  truthy:
+    allowed-values: ['true', 'false', 'on']
+
+  # Allow spacing in brackets for readability
+  brackets:
+    max-spaces-inside: 1
+
+  # Allow indentation for readability
+  indentation:
+    spaces: 2
+    indent-sequences: true
+
+  # Comments can be flexible
+  comments:
+    min-spaces-from-content: 1
