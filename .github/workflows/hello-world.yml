@@ -19,11 +19,15 @@ permissions:
   contents: read
   attestations: write
   id-token: write
+  pull-requests: write
 
 jobs:
   greet:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 5
+    outputs:
+      timestamp: ${{ steps.set-output.outputs.timestamp }}
+      run-id: ${{ github.run_id }}
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-2025-vs2026]
@@ -33,6 +37,11 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
+      
+      - name: Set timestamp output
+        id: set-output
+        run: echo "timestamp=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> $GITHUB_OUTPUT
+        shell: bash
       
       - name: Say Hello
         run: echo "Hello, World! 👋 from ${{ matrix.os }}"
@@ -79,6 +88,8 @@ jobs:
     needs: greet
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    outputs:
+      summary: ${{ steps.create-summary.outputs.summary }}
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     
@@ -89,8 +100,12 @@ jobs:
           path: artifacts
       
       - name: Combine greetings
+        id: create-summary
         run: |
           echo "# Combined Greetings from All Platforms" > combined.txt
+          echo "" >> combined.txt
+          echo "Build started at: ${{ needs.greet.outputs.timestamp }}" >> combined.txt
+          echo "Run ID: ${{ needs.greet.outputs.run-id }}" >> combined.txt
           echo "" >> combined.txt
           for file in artifacts/*/hello-*.txt; do
             echo "---" >> combined.txt
@@ -98,6 +113,9 @@ jobs:
             echo "" >> combined.txt
           done
           cat combined.txt
+          
+          # Set output for other jobs
+          echo "summary=Successfully combined greetings from all platforms" >> $GITHUB_OUTPUT
       
       - name: Upload combined artifact
         uses: actions/upload-artifact@v7
@@ -113,3 +131,108 @@ jobs:
           echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
           cat combined.txt >> $GITHUB_STEP_SUMMARY
           echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+  
+  comment-pr:
+    name: Comment on PR
+    if: github.event_name == 'pull_request'
+    needs: [greet, combine]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+    
+    steps:
+      - name: Download combined artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: combined-greetings
+      
+      - name: Create PR comment
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const fs = require('fs');
+            const combined = fs.readFileSync('combined.txt', 'utf8');
+            
+            const comment = `## 🎉 Hello World Workflow Complete!
+            
+            **Status:** ✅ All platforms passed
+            **Run ID:** ${{ github.run_id }}
+            **Timestamp:** ${{ needs.greet.outputs.timestamp }}
+            
+            <details>
+            <summary>📦 Combined Greetings</summary>
+            
+            \`\`\`
+            ${combined}
+            \`\`\`
+            
+            </details>
+            
+            ${{ needs.combine.outputs.summary }}
+            
+            [View full workflow run](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})`;
+            
+            github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: comment
+            });
+  
+  notify-failure:
+    name: Notify on Failure
+    if: failure()
+    needs: [greet, combine]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+    
+    steps:
+      - name: Log failure
+        run: |
+          echo "::error::Workflow failed! Check the logs for details."
+          echo "## ❌ Workflow Failed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Run ID:** ${{ github.run_id }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "[View failed run](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> $GITHUB_STEP_SUMMARY
+  
+  cache-demo:
+    name: Cache Demo
+    needs: combine
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+      
+      - name: Cache demo files
+        uses: actions/cache@v5
+        with:
+          path: |
+            ~/.cache/demo
+          key: demo-cache-${{ runner.os }}-${{ github.run_id }}
+          restore-keys: |
+            demo-cache-${{ runner.os }}-
+      
+      - name: Create cached content
+        run: |
+          mkdir -p ~/.cache/demo
+          echo "Cached at: $(date)" > ~/.cache/demo/timestamp.txt
+          echo "Run ID: ${{ github.run_id }}" >> ~/.cache/demo/timestamp.txt
+          cat ~/.cache/demo/timestamp.txt
+      
+      - name: Cache summary
+        run: |
+          echo "## 💾 Cache Demo" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Demonstrated caching with key: \`demo-cache-${{ runner.os }}-${{ github.run_id }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "In a real workflow, this would cache dependencies, build artifacts, or other reusable data." >> $GITHUB_STEP_SUMMARY
