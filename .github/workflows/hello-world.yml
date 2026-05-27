@@ -6,6 +6,27 @@ on:
   pull_request:
     branches: [ main ]
   workflow_dispatch:
+    inputs:
+      os-selection:
+        description: 'Operating systems to run on'
+        required: false
+        type: choice
+        options:
+          - 'all'
+          - 'ubuntu-only'
+          - 'macos-only'
+          - 'windows-only'
+        default: 'all'
+      custom-message:
+        description: 'Custom greeting message'
+        required: false
+        default: 'Hello, World!'
+        type: string
+      enable-deployment:
+        description: 'Run deployment job (requires approval)'
+        required: false
+        type: boolean
+        default: false
   schedule:
     - cron: '0 0 * * 0'  # Weekly on Sundays at midnight UTC
 
@@ -28,13 +49,25 @@ jobs:
     outputs:
       timestamp: ${{ steps.set-output.outputs.timestamp }}
       run-id: ${{ github.run_id }}
+      duration: ${{ steps.performance.outputs.duration }}
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-2025-vs2026]
+        os: ${{ 
+          (github.event_name == 'workflow_dispatch' && inputs.os-selection == 'ubuntu-only' && fromJSON('["ubuntu-latest"]')) ||
+          (github.event_name == 'workflow_dispatch' && inputs.os-selection == 'macos-only' && fromJSON('["macos-latest"]')) ||
+          (github.event_name == 'workflow_dispatch' && inputs.os-selection == 'windows-only' && fromJSON('["windows-2025-vs2026"]')) ||
+          fromJSON('["ubuntu-latest", "macos-latest", "windows-2025-vs2026"]')
+        }}
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+      CUSTOM_MESSAGE: ${{ inputs.custom-message || 'Hello, World!' }}
     
     steps:
+      - name: Record start time
+        id: start
+        run: echo "time=$(date +%s)" >> $GITHUB_OUTPUT
+        shell: bash
+      
       - name: Checkout code
         uses: actions/checkout@v6
       
@@ -44,7 +77,7 @@ jobs:
         shell: bash
       
       - name: Say Hello
-        run: echo "Hello, World! 👋 from ${{ matrix.os }}"
+        run: echo "${{ env.CUSTOM_MESSAGE }} 👋 from ${{ matrix.os }}"
       
       - name: Display environment
         run: |
@@ -55,7 +88,7 @@ jobs:
       
       - name: Create artifact
         run: |
-          echo "Hello from ${{ runner.os }}!" > hello-${{ runner.os }}.txt
+          echo "${{ env.CUSTOM_MESSAGE }} from ${{ runner.os }}!" > hello-${{ runner.os }}.txt
           echo "Build time: $(date)" >> hello-${{ runner.os }}.txt
         shell: bash
       
@@ -71,6 +104,17 @@ jobs:
         with:
           subject-path: hello-${{ runner.os }}.txt
       
+      - name: Calculate performance metrics
+        id: performance
+        if: always()
+        run: |
+          END_TIME=$(date +%s)
+          START_TIME=${{ steps.start.time }}
+          DURATION=$((END_TIME - START_TIME))
+          echo "duration=${DURATION}" >> $GITHUB_OUTPUT
+          echo "Job duration: ${DURATION} seconds"
+        shell: bash
+      
       - name: Generate job summary
         if: always()
         run: |
@@ -81,6 +125,7 @@ jobs:
           echo "**Trigger:** ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
           echo "**Branch:** \`${{ github.ref_name }}\`" >> $GITHUB_STEP_SUMMARY
           echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Duration:** ${{ steps.performance.outputs.duration }}s ⚡" >> $GITHUB_STEP_SUMMARY
         shell: bash
   
   combine:
@@ -236,3 +281,41 @@ jobs:
           echo "Demonstrated caching with key: \`demo-cache-${{ runner.os }}-${{ github.run_id }}\`" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "In a real workflow, this would cache dependencies, build artifacts, or other reusable data." >> $GITHUB_STEP_SUMMARY
+  
+  deploy:
+    name: Deploy to Production
+    if: (github.event_name == 'workflow_dispatch' && inputs.enable-deployment) || github.ref == 'refs/heads/main'
+    needs: [combine, cache-demo]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: production
+      url: https://github.com/${{ github.repository }}
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+    
+    steps:
+      - name: Download combined artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: combined-greetings
+      
+      - name: Simulate deployment
+        run: |
+          echo "🚀 Deploying to production..."
+          echo "Deployment approved and proceeding..."
+          sleep 5
+          echo "✅ Deployment complete!"
+          cat combined.txt
+      
+      - name: Deployment summary
+        run: |
+          echo "## 🚀 Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Environment:** Production" >> $GITHUB_STEP_SUMMARY
+          echo "**Status:** ✅ Deployed" >> $GITHUB_STEP_SUMMARY
+          echo "**Run ID:** ${{ github.run_id }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Deployed by:** ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Timestamp:** ${{ needs.greet.outputs.timestamp }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "This deployment required manual approval via the \`production\` environment." >> $GITHUB_STEP_SUMMARY

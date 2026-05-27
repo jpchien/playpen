@@ -1,0 +1,271 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to release (e.g., v1.0.0)'
+        required: true
+        type: string
+      prerelease:
+        description: 'Mark as pre-release'
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  discussions: write
+
+jobs:
+  build:
+    name: Build Release Artifacts
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-2025-vs2026]
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.tag || github.ref }}
+      
+      - name: Extract version
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION="${{ inputs.tag }}"
+          else
+            VERSION="${GITHUB_REF#refs/tags/}"
+          fi
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "Version: ${VERSION}"
+        shell: bash
+      
+      - name: Create release artifact
+        run: |
+          mkdir -p release
+          echo "Release ${{ steps.version.outputs.version }} for ${{ runner.os }}" > release/release-${{ runner.os }}.txt
+          echo "Build date: $(date)" >> release/release-${{ runner.os }}.txt
+          echo "Commit: ${{ github.sha }}" >> release/release-${{ runner.os }}.txt
+          echo "Repository: ${{ github.repository }}" >> release/release-${{ runner.os }}.txt
+        shell: bash
+      
+      - name: Upload release artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: release-${{ runner.os }}
+          path: release/
+          retention-days: 30
+      
+      - name: Build summary
+        run: |
+          echo "## 📦 Build Complete" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Platform:** ${{ runner.os }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Version:** ${{ steps.version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+  
+  create-release:
+    name: Create GitHub Release
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.tag || github.ref }}
+          fetch-depth: 0
+      
+      - name: Download all artifacts
+        uses: actions/download-artifact@v8
+        with:
+          path: artifacts
+      
+      - name: Extract version
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION="${{ inputs.tag }}"
+          else
+            VERSION="${GITHUB_REF#refs/tags/}"
+          fi
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+        shell: bash
+      
+      - name: Generate release notes
+        id: notes
+        run: |
+          cat << EOF > release-notes.md
+          ## 🎉 Release ${{ steps.version.outputs.version }}
+          
+          ### What's Changed
+          
+          This release includes builds for Linux, macOS, and Windows.
+          
+          ### Assets
+          
+          Download the appropriate artifact for your platform:
+          - **Linux:** release-Linux.txt
+          - **macOS:** release-macOS.txt  
+          - **Windows:** release-Windows.txt
+          
+          ### Installation
+          
+          \`\`\`bash
+          # Example installation command
+          curl -sSL https://github.com/${{ github.repository }}/releases/download/${{ steps.version.outputs.version }}/release-Linux.txt
+          \`\`\`
+          
+          ### Full Changelog
+          
+          **Commits included in this release:**
+          EOF
+          
+          # Get commits since last tag
+          LAST_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          if [ -n "$LAST_TAG" ]; then
+            git log ${LAST_TAG}..HEAD --oneline --no-decorate >> release-notes.md
+          else
+            git log --oneline --no-decorate -10 >> release-notes.md
+          fi
+          
+          cat release-notes.md
+        shell: bash
+      
+      - name: Create Release
+        uses: actions/github-script@v9
+        env:
+          PRERELEASE: ${{ inputs.prerelease || 'false' }}
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            
+            // Read release notes
+            const releaseNotes = fs.readFileSync('release-notes.md', 'utf8');
+            
+            // Create the release
+            const release = await github.rest.repos.createRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              tag_name: '${{ steps.version.outputs.version }}',
+              name: 'Release ${{ steps.version.outputs.version }}',
+              body: releaseNotes,
+              draft: false,
+              prerelease: process.env.PRERELEASE === 'true',
+              generate_release_notes: true
+            });
+            
+            console.log(`Created release: ${release.data.html_url}`);
+            
+            // Upload artifacts
+            const artifactsDir = 'artifacts';
+            const platforms = ['Linux', 'macOS', 'Windows'];
+            
+            for (const platform of platforms) {
+              const artifactPath = path.join(artifactsDir, `release-${platform}`, `release-${platform}.txt`);
+              
+              if (fs.existsSync(artifactPath)) {
+                const fileContent = fs.readFileSync(artifactPath);
+                
+                await github.rest.repos.uploadReleaseAsset({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  release_id: release.data.id,
+                  name: `release-${platform}.txt`,
+                  data: fileContent
+                });
+                
+                console.log(`Uploaded ${platform} artifact`);
+              }
+            }
+            
+            core.summary
+              .addHeading('🎉 Release Published', 2)
+              .addRaw(`Release **${{ steps.version.outputs.version }}** has been published!`)
+              .addBreak()
+              .addLink('View Release', release.data.html_url)
+              .write();
+      
+      - name: Create discussion
+        uses: actions/github-script@v9
+        continue-on-error: true
+        with:
+          script: |
+            // Only create discussion if discussions are enabled
+            try {
+              const query = `
+                query($owner: String!, $repo: String!) {
+                  repository(owner: $owner, name: $repo) {
+                    discussionCategories(first: 5) {
+                      nodes {
+                        id
+                        name
+                      }
+                    }
+                  }
+                }
+              `;
+              
+              const result = await github.graphql(query, {
+                owner: context.repo.owner,
+                repo: context.repo.repo
+              });
+              
+              const announcementCategory = result.repository.discussionCategories.nodes
+                .find(cat => cat.name === 'Announcements');
+              
+              if (announcementCategory) {
+                const mutation = `
+                  mutation($repositoryId: ID!, $categoryId: ID!, $title: String!, $body: String!) {
+                    createDiscussion(input: {
+                      repositoryId: $repositoryId,
+                      categoryId: $categoryId,
+                      title: $title,
+                      body: $body
+                    }) {
+                      discussion {
+                        url
+                      }
+                    }
+                  }
+                `;
+                
+                // Get repository ID
+                const repoQuery = `
+                  query($owner: String!, $repo: String!) {
+                    repository(owner: $owner, name: $repo) {
+                      id
+                    }
+                  }
+                `;
+                
+                const repoResult = await github.graphql(repoQuery, {
+                  owner: context.repo.owner,
+                  repo: context.repo.repo
+                });
+                
+                await github.graphql(mutation, {
+                  repositoryId: repoResult.repository.id,
+                  categoryId: announcementCategory.id,
+                  title: '🎉 Release ${{ steps.version.outputs.version }}',
+                  body: 'A new release is now available! Check it out: https://github.com/${{ github.repository }}/releases/tag/${{ steps.version.outputs.version }}'
+                });
+                
+                console.log('Created discussion for release');
+              }
+            } catch (error) {
+              console.log('Could not create discussion:', error.message);
+            }
