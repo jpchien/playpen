@@ -153,7 +153,7 @@ jobs:
           echo "============================================"
 
       - name: Live Demo - Fetch Real Weather (if API key configured)
-        if: ${{ secrets.OPENWEATHER_API_KEY != '' }}
+        if: secrets.OPENWEATHER_API_KEY != ''
         working-directory: weather_app
         shell: bash
         env:
