@@ -120,40 +120,47 @@ jobs:
 
       - name: Create sample Python code and tests
         run: |
-          mkdir -p src tests
-
+          python -c "
+          import os
+          os.makedirs('src', exist_ok=True)
+          os.makedirs('tests', exist_ok=True)
+          
           # Create main module
-          cat << 'EOF' > src/calculator.py
-          """Simple calculator module."""
+          with open('src/calculator.py', 'w') as f:
+              f.write('''\"\"\"Simple calculator module.\"\"\"
 
           def add(a: int, b: int) -> int:
-              """Add two numbers."""
+              \"\"\"Add two numbers.\"\"\"
               return a + b
 
 
           def subtract(a: int, b: int) -> int:
-              """Subtract b from a."""
+              \"\"\"Subtract b from a.\"\"\"
               return a - b
 
 
           def multiply(a: int, b: int) -> int:
-              """Multiply two numbers."""
+              \"\"\"Multiply two numbers.\"\"\"
               return a * b
 
 
           def divide(a: float, b: float) -> float:
-              """Divide a by b."""
+              \"\"\"Divide a by b.\"\"\"
               if b == 0:
-                  raise ValueError("Cannot divide by zero")
+                  raise ValueError(\"Cannot divide by zero\")
               return a / b
-          EOF
-
+          ''')
+          
+          # Create __init__.py
+          with open('src/__init__.py', 'w') as f:
+              f.write('')
+          
           # Create tests
-          cat << 'EOF' > tests/test_calculator.py
-          """Tests for calculator module."""
+          with open('tests/test_calculator.py', 'w') as f:
+              f.write('''\"\"\"Tests for calculator module.\"\"\"
           import sys
           import os
-          sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
+          sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), \"..\", \"src\")))
 
           import pytest
           from calculator import add, subtract, multiply, divide
@@ -184,19 +191,25 @@ jobs:
 
 
           def test_divide_by_zero():
-              with pytest.raises(ValueError, match="Cannot divide by zero"):
+              with pytest.raises(ValueError, match=\"Cannot divide by zero\"):
                   divide(5, 0)
-          EOF
-
-          cat << 'EOF' > tests/conftest.py
-          """Pytest configuration."""
+          ''')
+          
+          # Create conftest
+          with open('tests/conftest.py', 'w') as f:
+              f.write('''\"\"\"Pytest configuration.\"\"\"
           import pytest
 
           def pytest_configure(config):
               config.addinivalue_line(
-                  "markers", "slow: marks tests as slow (deselect with '-m \"not slow\"')"
+                  \"markers\", \"slow: marks tests as slow (deselect with \\'-m \\\"not slow\\\"\\')\"
               )
-          EOF
+          ''')
+          
+          # Create __init__.py for tests
+          with open('tests/__init__.py', 'w') as f:
+              f.write('')
+          "
         shell: bash
 
       - name: Run tests with coverage
@@ -215,6 +228,7 @@ jobs:
             htmlcov/
             test-report.html
             coverage.xml
+          if-no-files-found: ignore
           retention-days: 30
 
       - name: Test summary
