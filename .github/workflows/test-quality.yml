@@ -248,12 +248,14 @@ jobs:
     needs: test
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    if: success() || failure()
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
     steps:
       - name: Download all coverage reports
         uses: actions/download-artifact@v8
+        continue-on-error: true
         with:
           pattern: coverage-*
           path: coverage-reports
@@ -261,18 +263,33 @@ jobs:
       - name: List downloaded files
         run: |
           echo "Downloaded coverage reports:"
-          find coverage-reports -type f
+          if [ -d "coverage-reports" ]; then
+            find coverage-reports -type f || echo "No files found in coverage-reports"
+          else
+            echo "No coverage-reports directory (no artifacts were uploaded)"
+          fi
 
       - name: Generate combined summary
         run: |
           echo "## 📊 Test Coverage Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "Coverage reports generated for:" >> $GITHUB_STEP_SUMMARY
-          echo "- Ubuntu (Python 3.11, 3.12)" >> $GITHUB_STEP_SUMMARY
-          echo "- macOS (Python 3.11, 3.12)" >> $GITHUB_STEP_SUMMARY
-          echo "- Windows (Python 3.11, 3.12)" >> $GITHUB_STEP_SUMMARY
+          
+          if [ -d "coverage-reports" ] && [ "$(find coverage-reports -type f 2>/dev/null | wc -l)" -gt 0 ]; then
+            echo "✅ Coverage reports available for:" >> $GITHUB_STEP_SUMMARY
+            for dir in coverage-reports/coverage-*; do
+              if [ -d "$dir" ]; then
+                echo "- $(basename "$dir")" >> $GITHUB_STEP_SUMMARY
+              fi
+            done
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "📁 Download the artifacts to view detailed coverage reports." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️ No coverage reports were uploaded." >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "This can happen if tests failed before generating coverage." >> $GITHUB_STEP_SUMMARY
+          fi
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "📁 Download the artifacts to view detailed coverage reports." >> $GITHUB_STEP_SUMMARY
+          echo "**Target platforms:** Ubuntu, macOS, Windows (Python 3.11, 3.12)" >> $GITHUB_STEP_SUMMARY
 
       - name: Comment on PR
         if: github.event_name == 'pull_request'
