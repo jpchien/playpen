@@ -289,4 +289,5 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Next run:** Scheduled for next Sunday at 3 AM UTC" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "💡 You can also run this workflow manually with custom settings from the Actions tab." >> $GITHUB_STEP_SUMMARY
+          echo "💡 You can also run this workflow manually with" >> $GITHUB_STEP_SUMMARY
+          echo "custom settings from the Actions tab." >> $GITHUB_STEP_SUMMARY

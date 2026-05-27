@@ -52,10 +52,11 @@ jobs:
       - name: Create release artifact
         run: |
           mkdir -p release
-          echo "Release ${{ steps.version.outputs.version }} for ${{ runner.os }}" > release/release-${{ runner.os }}.txt
-          echo "Build date: $(date)" >> release/release-${{ runner.os }}.txt
-          echo "Commit: ${{ github.sha }}" >> release/release-${{ runner.os }}.txt
-          echo "Repository: ${{ github.repository }}" >> release/release-${{ runner.os }}.txt
+          FILE="release/release-${{ runner.os }}.txt"
+          echo "Release ${{ steps.version.outputs.version }} for ${{ runner.os }}" > "$FILE"
+          echo "Build date: $(date)" >> "$FILE"
+          echo "Commit: ${{ github.sha }}" >> "$FILE"
+          echo "Repository: ${{ github.repository }}" >> "$FILE"
         shell: bash
 
       - name: Upload release artifact
@@ -125,7 +126,8 @@ jobs:
 
           \`\`\`bash
           # Example installation command
-          curl -sSL https://github.com/${{ github.repository }}/releases/download/${{ steps.version.outputs.version }}/release-Linux.txt
+          VERSION="${{ steps.version.outputs.version }}"
+          curl -sSL https://github.com/${{ github.repository }}/releases/download/$VERSION/release-Linux.txt
           \`\`\`
 
           ### Full Changelog
@@ -261,7 +263,9 @@ jobs:
                   repositoryId: repoResult.repository.id,
                   categoryId: announcementCategory.id,
                   title: '🎉 Release ${{ steps.version.outputs.version }}',
-                  body: 'A new release is now available! Check it out: https://github.com/${{ github.repository }}/releases/tag/${{ steps.version.outputs.version }}'
+                  body: 'A new release is now available! ' +
+                    'Check it out: ' +
+                    'https://github.com/${{ github.repository }}/releases/tag/${{ steps.version.outputs.version }}'
                 });
 
                 console.log('Created discussion for release');

@@ -52,7 +52,14 @@ jobs:
       duration: ${{ steps.performance.outputs.duration }}
     strategy:
       matrix:
-        os: ${{ (github.event_name == 'workflow_dispatch' && inputs.os-selection == 'ubuntu-only' && fromJSON('["ubuntu-latest"]')) || (github.event_name == 'workflow_dispatch' && inputs.os-selection == 'macos-only' && fromJSON('["macos-latest"]')) || (github.event_name == 'workflow_dispatch' && inputs.os-selection == 'windows-only' && fromJSON('["windows-2025-vs2026"]')) || fromJSON('["ubuntu-latest", "macos-latest", "windows-2025-vs2026"]') }}
+        os: ${{
+          (github.event_name == 'workflow_dispatch' && inputs.os-selection == 'ubuntu-only'
+            && fromJSON('["ubuntu-latest"]')) ||
+          (github.event_name == 'workflow_dispatch' && inputs.os-selection == 'macos-only'
+            && fromJSON('["macos-latest"]')) ||
+          (github.event_name == 'workflow_dispatch' && inputs.os-selection == 'windows-only'
+            && fromJSON('["windows-2025-vs2026"]')) ||
+          fromJSON('["ubuntu-latest", "macos-latest", "windows-2025-vs2026"]') }}
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
       CUSTOM_MESSAGE: ${{ inputs.custom-message || 'Hello, World!' }}
@@ -160,7 +167,8 @@ jobs:
           else
             echo "**Mode:** 🤖 Automatic" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
-            echo "> 💡 **Tip:** Manually trigger this workflow from the Actions tab to use custom inputs!" >> $GITHUB_STEP_SUMMARY
+            echo "> 💡 **Tip:** Manually trigger this workflow from" >> $GITHUB_STEP_SUMMARY
+            echo "> the Actions tab to use custom inputs!" >> $GITHUB_STEP_SUMMARY
           fi
 
           echo "" >> $GITHUB_STEP_SUMMARY
@@ -285,7 +293,8 @@ jobs:
           echo "**Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
           echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "[View failed run](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> $GITHUB_STEP_SUMMARY
+          RUN_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          echo "[View failed run]($RUN_URL)" >> $GITHUB_STEP_SUMMARY
 
   cache-demo:
     name: Cache Demo
@@ -319,9 +328,11 @@ jobs:
         run: |
           echo "## 💾 Cache Demo" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "Demonstrated caching with key: \`demo-cache-${{ runner.os }}-${{ github.run_id }}\`" >> $GITHUB_STEP_SUMMARY
+          CACHE_KEY="demo-cache-${{ runner.os }}-${{ github.run_id }}"
+          echo "Demonstrated caching with key: \`$CACHE_KEY\`" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "In a real workflow, this would cache dependencies, build artifacts, or other reusable data." >> $GITHUB_STEP_SUMMARY
+          echo "In a real workflow, this would cache dependencies," >> $GITHUB_STEP_SUMMARY
+          echo "build artifacts, or other reusable data." >> $GITHUB_STEP_SUMMARY
 
   deploy:
     name: Deploy to Production
