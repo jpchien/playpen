@@ -42,14 +42,14 @@ jobs:
         shell: bash
         run: |
           black --check --diff *.py || true
-          echo "✅ Black formatting check complete"
+          echo "[OK] Black formatting check complete"
 
       - name: Run isort check
         working-directory: weather_app
         shell: bash
         run: |
           isort --check-only --diff *.py || true
-          echo "✅ isort import ordering check complete"
+          echo "[OK] isort import ordering check complete"
 
       - name: Run flake8
         working-directory: weather_app
@@ -57,14 +57,14 @@ jobs:
         run: |
           flake8 *.py --count --select=E9,F63,F7,F82 --show-source --statistics || true
           flake8 *.py --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics || true
-          echo "✅ Flake8 linting complete"
+          echo "[OK] Flake8 linting complete"
 
       - name: Run pylint
         working-directory: weather_app
         shell: bash
         run: |
           pylint *.py --exit-zero --output-format=text || true
-          echo "✅ Pylint analysis complete"
+          echo "[OK] Pylint analysis complete"
 
       - name: Lint summary
         run: |
@@ -98,12 +98,12 @@ jobs:
         shell: bash
         run: |
           python -m py_compile weather.py api_client.py config.py display.py
-          echo "✅ Syntax check passed for Python ${{ matrix.python-version }} on ${{ matrix.os }}"
+          echo "[OK] Syntax check passed for Python ${{ matrix.python-version }} on ${{ matrix.os }}"
 
       - name: Test imports
         shell: bash
         run: |
-          python -c "import sys; sys.path.insert(0, 'weather_app'); import api_client; import config; import display; print('✅ All modules import successfully')"
+          python -c "import sys; sys.path.insert(0, 'weather_app'); import api_client; import config; import display; print('[OK] All modules import successfully')"
 
   help-check:
     name: Test CLI Help
@@ -126,14 +126,14 @@ jobs:
         shell: bash
         run: |
           python weather.py --help
-          echo "✅ Help command works"
+          echo "[OK] Help command works"
 
       - name: Test list-favorites (no config)
         working-directory: weather_app
         shell: bash
         run: |
           python weather.py --list-favorites || true
-          echo "✅ List favorites works without config"
+          echo "[OK] List favorites works without config"
 
       - name: Summary
         run: |
