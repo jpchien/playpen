@@ -50,8 +50,7 @@ Comprehensive quality assurance:
 - 🔍 **Linting** - Black, isort, flake8, pylint, yamllint
 - 🧪 **Testing** - pytest across multiple Python versions and platforms
 - 📊 **Coverage** - Generates and uploads coverage reports
-- 🔒 **Security scanning** - CodeQL analysis for vulnerabilities
-- 💬 **PR feedback** - Posts test results and coverage to pull requests
+-  **PR feedback** - Posts test results and coverage to pull requests
 
 **Triggers:**
 - Push to main
@@ -108,12 +107,11 @@ Automated dependency updates:
 - ✅ Status checks and summaries
 - ✅ Release automation
 - ✅ Discussion creation
-- ✅ Security scanning integration
 
 ### Best Practices
 - ✅ Minimal permissions (least privilege)
-- ✅ Security scanning (CodeQL)
 - ✅ Dependency management (Dependabot)
+- ✅ Dependency security audit (pip-audit)
 - ✅ Performance tracking
 - ✅ Comprehensive logging
 - ✅ Error handling and notifications

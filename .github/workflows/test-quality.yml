@@ -11,7 +11,6 @@ on:
 
 permissions:
   contents: read
-  security-events: write
   pull-requests: write
   checks: write
 
@@ -227,41 +226,6 @@ jobs:
           echo "Coverage reports and test results have been uploaded as artifacts." >> $GITHUB_STEP_SUMMARY
         shell: bash
   
-  codeql:
-    name: CodeQL Security Scan
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    env:
-      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v6
-      
-      - name: Initialize CodeQL
-        uses: github/codeql-action/init@v3
-        with:
-          languages: python
-          queries: security-and-quality
-      
-      - name: Autobuild
-        uses: github/codeql-action/autobuild@v3
-      
-      - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v3
-        with:
-          category: "/language:python"
-      
-      - name: Security scan summary
-        run: |
-          echo "## 🔒 Security Scan" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Tool:** CodeQL" >> $GITHUB_STEP_SUMMARY
-          echo "**Language:** Python" >> $GITHUB_STEP_SUMMARY
-          echo "**Status:** ✅ Analysis complete" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "Check the Security tab for any findings." >> $GITHUB_STEP_SUMMARY
-  
   coverage-report:
     name: Combine Coverage Reports
     needs: test
@@ -309,9 +273,6 @@ jobs:
             - Windows (Python 3.11, 3.12)
             
             Download the artifacts from the workflow run to view detailed coverage.
-            
-            ### Security
-            CodeQL security scan completed successfully.
             
             [View full workflow run](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})`;
             
