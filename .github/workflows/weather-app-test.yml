@@ -152,13 +152,21 @@ jobs:
           echo "as a repository secret and configure setup."
           echo "============================================"
 
-      - name: Live Demo - Fetch Real Weather (if API key configured)
-        if: secrets.OPENWEATHER_API_KEY != ''
+      - name: Live Demo - Fetch Real Weather (Optional)
+        continue-on-error: true
         working-directory: weather_app
         shell: bash
         env:
           API_KEY: ${{ secrets.OPENWEATHER_API_KEY }}
         run: |
+          if [ -z "$API_KEY" ]; then
+            echo "============================================"
+            echo "Skipping live demo - no API key configured"
+            echo "To enable: Add OPENWEATHER_API_KEY secret"
+            echo "============================================"
+            exit 0
+          fi
+          
           echo "============================================"
           echo "LIVE DEMO: Fetching Real Weather Data"
           echo "============================================"
