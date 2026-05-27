@@ -35,6 +35,8 @@ Have an idea? Create an issue with:
    git clone https://github.com/YOUR_USERNAME/playpen.git
    cd playpen/weather_app
    ```
+   
+   Replace `YOUR_USERNAME` with your GitHub username.
 
 3. **Create a branch**
    ```bash

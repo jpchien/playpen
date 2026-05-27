@@ -18,9 +18,9 @@ updates:
       prefix: "chore(deps)"
       include: "scope"
     reviewers:
-      - "e1054967"
+      - "jpchien"
     assignees:
-      - "e1054967"
+      - "jpchien"
   
   # Python dependencies (if you add requirements.txt or setup.py)
   - package-ecosystem: "pip"

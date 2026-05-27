@@ -1,10 +1,11 @@
 # playpen
 
-[![Hello World](https://github.com/e1054967/playpen/actions/workflows/hello-world.yml/badge.svg)](https://github.com/e1054967/playpen/actions/workflows/hello-world.yml)
-[![Test & Quality](https://github.com/e1054967/playpen/actions/workflows/test-quality.yml/badge.svg)](https://github.com/e1054967/playpen/actions/workflows/test-quality.yml)
-[![Maintenance](https://github.com/e1054967/playpen/actions/workflows/maintenance.yml/badge.svg)](https://github.com/e1054967/playpen/actions/workflows/maintenance.yml)
+[![Hello World](https://github.com/jpchien/playpen/actions/workflows/hello-world.yml/badge.svg)](https://github.com/jpchien/playpen/actions/workflows/hello-world.yml)
+[![Test & Quality](https://github.com/jpchien/playpen/actions/workflows/test-quality.yml/badge.svg)](https://github.com/jpchien/playpen/actions/workflows/test-quality.yml)
+[![Maintenance](https://github.com/jpchien/playpen/actions/workflows/maintenance.yml/badge.svg)](https://github.com/jpchien/playpen/actions/workflows/maintenance.yml)
+[![Weather App](https://github.com/jpchien/playpen/actions/workflows/weather-app-test.yml/badge.svg)](https://github.com/jpchien/playpen/actions/workflows/weather-app-test.yml)
 
-A comprehensive playground repository demonstrating GitHub Actions workflows, CI/CD patterns, and automation best practices.
+A comprehensive playground repository demonstrating GitHub Actions workflows, CI/CD patterns, automation best practices, and real-world applications.
 
 ## 🚀 Workflows
 
@@ -71,6 +72,29 @@ Automated repository maintenance:
 **Triggers:**
 - Schedule (weekly on Sundays at 3 AM UTC)
 - Manual (with cleanup options)
+
+### Weather App
+**File:** `.github/workflows/weather-app-test.yml` | **App:** `weather_app/`
+
+A fully-featured CLI weather application with comprehensive testing:
+- 🌤️ **Real Application** - Production-ready weather checker using OpenWeatherMap API
+- 🔍 **Code Quality** - Black, isort, flake8, pylint checks
+- 🧪 **Multi-platform Testing** - Python 3.8-3.12 on Ubuntu, macOS, and Windows
+- 📦 **Zero Dependencies** - Pure Python standard library
+- 🎬 **Live Demo** - Optionally fetches real weather in CI with API key
+- 📚 **Complete Documentation** - README, CONTRIBUTING, CHANGELOG, LICENSE
+
+**Triggers:**
+- Push to main (weather_app changes only)
+- Pull requests (weather_app changes only)
+- Manual
+
+**Features:**
+- Current weather and 5-day forecasts
+- Favorite locations management
+- Multiple temperature units
+- Smart caching system
+- Beautiful CLI output with emojis
 
 ## 🤖 Dependabot
 
@@ -151,6 +175,18 @@ To use the deployment job with manual approval:
 2. Create a new environment named `production`
 3. Add required reviewers
 4. Configure protection rules as needed
+
+## 🌤️ Weather App
+
+The `weather_app/` directory contains a complete, production-ready application:
+
+- **Full CLI Application**: Check weather for any location worldwide
+- **Professional Structure**: Modular code with separate API, config, and display modules
+- **Comprehensive Testing**: Automated tests across 15 platform/Python combinations
+- **Complete Documentation**: README with usage examples, contributing guidelines, changelog
+- **CI/CD Integration**: Automated code quality checks and optional live demos
+
+See [weather_app/README.md](weather_app/README.md) for details.
 
 ## 📚 Learning Resources
 
