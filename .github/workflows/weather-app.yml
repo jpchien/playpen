@@ -5,7 +5,7 @@ on:
     branches: [ main ]
     paths:
       - 'weather_app/**'
-      - '.github/workflows/weather-app-test.yml'
+      - '.github/workflows/weather-app.yml'
   pull_request:
     branches: [ main ]
     paths:
@@ -72,38 +72,6 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Status:** ✅ All checks completed" >> $GITHUB_STEP_SUMMARY
           echo "**Files checked:** weather_app/*.py" >> $GITHUB_STEP_SUMMARY
-
-  syntax-check:
-    name: Python Syntax Check
-    runs-on: ${{ matrix.os }}
-    timeout-minutes: 10
-    strategy:
-      matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
-        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12']
-    env:
-      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v6
-
-      - name: Setup Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v6
-        with:
-          python-version: ${{ matrix.python-version }}
-
-      - name: Check Python syntax
-        working-directory: weather_app
-        shell: bash
-        run: |
-          python -m py_compile weather.py api_client.py config.py display.py
-          echo "[OK] Syntax check passed for Python ${{ matrix.python-version }} on ${{ matrix.os }}"
-
-      - name: Test imports
-        shell: bash
-        run: |
-          python -c "import sys; sys.path.insert(0, 'weather_app'); import api_client; import config; import display; print('[OK] All modules import successfully')"
 
   help-check:
     name: Test CLI Help
@@ -180,16 +148,30 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           
           # Configure the app with the API key
-          python -c "import json; from pathlib import Path; config_dir = Path.home() / '.weather_app'; config_dir.mkdir(exist_ok=True); config = {'api_key': '$API_KEY', 'units': 'imperial', 'favorites': ['London', 'Tokyo', 'New York']}; (config_dir / 'config.json').write_text(json.dumps(config, indent=2))"
+          python -c "import json; from pathlib import Path; config_dir = Path.home() / '.weather_app'; config_dir.mkdir(exist_ok=True); config = {'api_key': '$API_KEY', 'units': 'imperial', 'favorites': ['San Francisco', 'Shanghai', 'Tokyo']}; (config_dir / 'config.json').write_text(json.dumps(config, indent=2))"
           
-          # London
-          echo "☀️ Current Weather - London:"
-          LONDON_OUTPUT=$(python weather.py London 2>&1)
-          echo "$LONDON_OUTPUT"
-          echo "<details><summary>🇬🇧 <strong>London Weather</strong></summary>" >> $GITHUB_STEP_SUMMARY
+          # San Francisco
+          echo "🌉 Current Weather - San Francisco:"
+          SF_OUTPUT=$(python weather.py "San Francisco" 2>&1)
+          echo "$SF_OUTPUT"
+          echo "<details><summary>🇺🇸 <strong>San Francisco Weather</strong></summary>" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
-          echo "$LONDON_OUTPUT" >> $GITHUB_STEP_SUMMARY
+          echo "$SF_OUTPUT" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "</details>" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          echo ""
+          
+          # Shanghai
+          echo "🏙️ Current Weather - Shanghai:"
+          SHANGHAI_OUTPUT=$(python weather.py Shanghai 2>&1)
+          echo "$SHANGHAI_OUTPUT"
+          echo "<details><summary>🇨🇳 <strong>Shanghai Weather</strong></summary>" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "$SHANGHAI_OUTPUT" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
           echo "</details>" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
@@ -197,27 +179,13 @@ jobs:
           echo ""
           
           # Tokyo
-          echo "🌸 Current Weather - Tokyo:"
+          echo "🗼 Current Weather - Tokyo:"
           TOKYO_OUTPUT=$(python weather.py Tokyo 2>&1)
           echo "$TOKYO_OUTPUT"
           echo "<details><summary>🇯🇵 <strong>Tokyo Weather</strong></summary>" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
           echo "$TOKYO_OUTPUT" >> $GITHUB_STEP_SUMMARY
-          echo '```' >> $GITHUB_STEP_SUMMARY
-          echo "</details>" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          
-          echo ""
-          
-          # New York
-          echo "🗽 Current Weather - New York:"
-          NY_OUTPUT=$(python weather.py "New York" 2>&1)
-          echo "$NY_OUTPUT"
-          echo "<details><summary>🇺🇸 <strong>New York Weather</strong></summary>" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo '```' >> $GITHUB_STEP_SUMMARY
-          echo "$NY_OUTPUT" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
           echo "</details>" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY

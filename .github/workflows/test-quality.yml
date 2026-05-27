@@ -5,12 +5,12 @@ on:
     branches: [ main ]
     paths-ignore:
       - 'weather_app/**'
-      - '.github/workflows/weather-app-test.yml'
+      - '.github/workflows/weather-app.yml'
   pull_request:
     branches: [ main ]
     paths-ignore:
       - 'weather_app/**'
-      - '.github/workflows/weather-app-test.yml'
+      - '.github/workflows/weather-app.yml'
   workflow_dispatch:
   schedule:
     - cron: '0 2 * * 1'  # Weekly on Mondays at 2 AM UTC

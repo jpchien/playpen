@@ -3,7 +3,7 @@
 [![Hello World](https://github.com/jpchien/playpen/actions/workflows/hello-world.yml/badge.svg)](https://github.com/jpchien/playpen/actions/workflows/hello-world.yml)
 [![Test & Quality](https://github.com/jpchien/playpen/actions/workflows/test-quality.yml/badge.svg)](https://github.com/jpchien/playpen/actions/workflows/test-quality.yml)
 [![Maintenance](https://github.com/jpchien/playpen/actions/workflows/maintenance.yml/badge.svg)](https://github.com/jpchien/playpen/actions/workflows/maintenance.yml)
-[![Weather App](https://github.com/jpchien/playpen/actions/workflows/weather-app-test.yml/badge.svg)](https://github.com/jpchien/playpen/actions/workflows/weather-app-test.yml)
+[![Weather App](https://github.com/jpchien/playpen/actions/workflows/weather-app.yml/badge.svg)](https://github.com/jpchien/playpen/actions/workflows/weather-app.yml)
 
 A comprehensive playground repository demonstrating GitHub Actions workflows, CI/CD patterns, automation best practices, and real-world applications.
 
@@ -74,12 +74,11 @@ Automated repository maintenance:
 - Manual (with cleanup options)
 
 ### Weather App
-**File:** `.github/workflows/weather-app-test.yml` | **App:** `weather_app/`
+**File:** `.github/workflows/weather-app.yml` | **App:** `weather_app/`
 
 A fully-featured CLI weather application with comprehensive testing:
 - 🌤️ **Real Application** - Production-ready weather checker using OpenWeatherMap API
 - 🔍 **Code Quality** - Black, isort, flake8, pylint checks
-- 🧪 **Multi-platform Testing** - Python 3.8-3.12 on Ubuntu, macOS, and Windows
 - 📦 **Zero Dependencies** - Pure Python standard library
 - 🎬 **Live Demo** - Optionally fetches real weather in CI with API key
 - 📚 **Complete Documentation** - README, CONTRIBUTING, CHANGELOG, LICENSE
@@ -182,9 +181,9 @@ The `weather_app/` directory contains a complete, production-ready application:
 
 - **Full CLI Application**: Check weather for any location worldwide
 - **Professional Structure**: Modular code with separate API, config, and display modules
-- **Comprehensive Testing**: Automated tests across 15 platform/Python combinations
+- **Comprehensive Testing**: Automated code quality checks with linters
 - **Complete Documentation**: README with usage examples, contributing guidelines, changelog
-- **CI/CD Integration**: Automated code quality checks and optional live demos
+- **CI/CD Integration**: Automated linting and optional live weather demos
 
 See [weather_app/README.md](weather_app/README.md) for details.
 
