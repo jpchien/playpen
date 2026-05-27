@@ -164,6 +164,8 @@ jobs:
             echo "Skipping live demo - no API key configured"
             echo "To enable: Add OPENWEATHER_API_KEY secret"
             echo "============================================"
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "💡 **Live Weather Demo**: Add \`OPENWEATHER_API_KEY\` secret to enable live weather data in CI." >> $GITHUB_STEP_SUMMARY
             exit 0
           fi
           
@@ -171,21 +173,61 @@ jobs:
           echo "LIVE DEMO: Fetching Real Weather Data"
           echo "============================================"
           echo ""
+          
+          # Add header to summary
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## 🌍 Live Weather Data Demo" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
           # Configure the app with the API key
           python -c "import json; from pathlib import Path; config_dir = Path.home() / '.weather_app'; config_dir.mkdir(exist_ok=True); config = {'api_key': '$API_KEY', 'units': 'imperial', 'favorites': ['London', 'Tokyo', 'New York']}; (config_dir / 'config.json').write_text(json.dumps(config, indent=2))"
           
+          # London
           echo "☀️ Current Weather - London:"
-          python weather.py London
+          LONDON_OUTPUT=$(python weather.py London 2>&1)
+          echo "$LONDON_OUTPUT"
+          echo "<details><summary>🇬🇧 <strong>London Weather</strong></summary>" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "$LONDON_OUTPUT" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "</details>" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
           echo ""
+          
+          # Tokyo
           echo "🌸 Current Weather - Tokyo:"
-          python weather.py Tokyo
+          TOKYO_OUTPUT=$(python weather.py Tokyo 2>&1)
+          echo "$TOKYO_OUTPUT"
+          echo "<details><summary>🇯🇵 <strong>Tokyo Weather</strong></summary>" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "$TOKYO_OUTPUT" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "</details>" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
           echo ""
+          
+          # New York
           echo "🗽 Current Weather - New York:"
-          python weather.py "New York"
+          NY_OUTPUT=$(python weather.py "New York" 2>&1)
+          echo "$NY_OUTPUT"
+          echo "<details><summary>🇺🇸 <strong>New York Weather</strong></summary>" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "$NY_OUTPUT" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "</details>" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
           echo ""
           echo "============================================"
           echo "Real weather data fetched successfully!"
           echo "============================================"
+          
+          echo "✅ **Live weather data fetched at $(date '+%Y-%m-%d %H:%M:%S UTC')**" >> $GITHUB_STEP_SUMMARY
 
       - name: Summary
         run: |
@@ -195,4 +237,6 @@ jobs:
           echo "✅ Handles missing configuration gracefully" >> $GITHUB_STEP_SUMMARY
           echo "✅ Demonstrates proper error handling" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "💡 **Tip**: To see live weather data in CI, add \`OPENWEATHER_API_KEY\` as a repository secret!" >> $GITHUB_STEP_SUMMARY
+          echo "---" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Weather App is production-ready!** 🚀" >> $GITHUB_STEP_SUMMARY
