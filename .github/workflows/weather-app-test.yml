@@ -101,10 +101,9 @@ jobs:
           echo "✅ Syntax check passed for Python ${{ matrix.python-version }} on ${{ matrix.os }}"
 
       - name: Test imports
-        working-directory: weather_app
         shell: bash
         run: |
-          python -c "import api_client; import config; import display; print('✅ All modules import successfully')"
+          python -c "import sys; sys.path.insert(0, 'weather_app'); import api_client; import config; import display; print('✅ All modules import successfully')"
 
   help-check:
     name: Test CLI Help
