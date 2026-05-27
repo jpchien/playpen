@@ -120,7 +120,7 @@ jobs:
 
       - name: Create sample Python code and tests
         run: |
-          python3 << 'PYSCRIPT'
+          cat > create_files.py << 'PYSCRIPT'
           import os
 
           os.makedirs('src', exist_ok=True)
@@ -189,6 +189,8 @@ jobs:
 
           print("Created all test files successfully")
           PYSCRIPT
+
+          python create_files.py
         shell: bash
 
       - name: Run tests with coverage
