@@ -3,8 +3,12 @@ name: Test & Quality
 on:
   push:
     branches: [ main ]
+    paths-ignore:
+      - 'weather_app/**'
   pull_request:
     branches: [ main ]
+    paths-ignore:
+      - 'weather_app/**'
   workflow_dispatch:
   schedule:
     - cron: '0 2 * * 1'  # Weekly on Mondays at 2 AM UTC
