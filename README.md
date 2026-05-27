@@ -48,7 +48,7 @@ Automated release workflow:
 
 Comprehensive quality assurance:
 - 🔍 **Linting** - Black, isort, flake8, pylint, yamllint
-- 🧪 **Testing** - pytest across multiple Python versions and platforms
+- 🧪 **Testing** - pytest across multiple Python versions (Ubuntu and macOS)
 - 📊 **Coverage** - Generates and uploads coverage reports
 -  **PR feedback** - Posts test results and coverage to pull requests
 
